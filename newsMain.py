@@ -9,6 +9,7 @@ from datetime import datetime as datime
 import time
 import os
 
+from selenium.webdriver.chrome.service import Service
 # Xvfb 설정
 os.system('Xvfb :99 -screen 0 1920x1080x16 &')
 os.environ['DISPLAY'] = ':99'
@@ -102,8 +103,9 @@ def getNewsData2(stDate, endDate, genre, media_list):
     options.add_experimental_option("useAutomationExtension", False)
     options.add_experimental_option("detach", False)
     options.add_argument('--headless=new')
+    service = Service('/usr/local/bin/chromedriver')
 
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(service=service, options=options)
     for index, media in enumerate(media_list):
         if genre == '인사':
             query = f'"[인사] {media}"'
