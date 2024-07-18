@@ -3,11 +3,15 @@ import datetime
 from selenium import webdriver
 from tempfile import mkdtemp
 from loguru import logger
-
 from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime as datime
 import time
+import os
+
+# Xvfb 설정
+os.system('Xvfb :99 -screen 0 1920x1080x16 &')
+os.environ['DISPLAY'] = ':99'
 
 def main():
     genre = st.radio(
@@ -16,12 +20,12 @@ def main():
         index=0,
     )
     uploaded_file = st.file_uploader("엑셀 파일을 업로드하세요", type=["xlsx", "xls"])
-    media_list =[]
+    media_list = []
     if uploaded_file is not None:
         # 업로드된 파일을 데이터프레임으로 읽기
         df = pd.read_excel(uploaded_file)
         # 데이터프레임을 배열로 변환
-        media_list  = df.values.flatten()
+        media_list = df.values.flatten()
 
     left, middle = st.columns([3, 1], vertical_alignment="bottom")
     test = ""
@@ -45,14 +49,14 @@ def main():
                     print("--------------------------------")
                     start_time = time.perf_counter()
                     progress_text = "Operation in progress. Please wait."
-                    news_articles = getNewsData2(stDate, endDate, genre,  media_list)
+                    news_articles = getNewsData2(stDate, endDate, genre, media_list)
                     end_time = time.perf_counter()
                     time_cost = end_time - start_time
                     logger.info(f' 소요 시간: {time_cost}')
                     df = pd.DataFrame(news_articles)
                     doneYn = "Y"
 
-    if 'Y'  in doneYn:
+    if 'Y' in doneYn:
         st.success('Done!')
         csv = convert_df(df)
         current_time = datime.now().strftime("%Y%m%d%H%M")
@@ -64,10 +68,9 @@ def main():
             key="download_csv")
 
 
-
 @st.cache_data
 def convert_df(df):
-   return df.to_csv(index=False).encode('utf-8-sig')
+    return df.to_csv(index=False).encode('utf-8-sig')
 
 
 def getNewsData2(stDate, endDate, genre, media_list):
@@ -81,8 +84,6 @@ def getNewsData2(stDate, endDate, genre, media_list):
     end_date = endDate.strftime("%Y.%m.%d")
 
     # Selenium WebDriver 초기화
-
-
     options = webdriver.ChromeOptions()
     options.add_argument('--no-sandbox')
     options.add_argument("--disable-gpu")
@@ -100,7 +101,7 @@ def getNewsData2(stDate, endDate, genre, media_list):
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option("useAutomationExtension", False)
     options.add_experimental_option("detach", False)
-    options.add_argument('headless=new')
+    options.add_argument('--headless=new')
 
     driver = webdriver.Chrome(options=options)
     for index, media in enumerate(media_list):
